@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Screen Runaway Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .login-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 350px;
+            text-align: center;
+            transition: transform 0.2s;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #4a6baf;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #4a6baf;
+            outline: none;
+        }
+
+        #loginBtn {
+            background-color: #4a6baf;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        #loginBtn:hover {
+            background-color: #3a5a9f;
+            transform: translateY(-2px);
+        }
+
+        #loginBtn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 15px;
+            font-weight: 500;
+            height: 20px;
+        }
+
+        .forgot-password {
+            margin-top: 15px;
+            color: #777;
+        }
+
+        .forgot-password a {
+            color: #4a6baf;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .emoji {
+            font-size: 30px;
+            margin-bottom: 15px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        .runaway-mode {
+            animation: shake 0.5s infinite;
+        }
+    </style>
+</head>
+<body id="body">
+    <div class="login-container" id="loginContainer">
+        <div class="emoji">🔐</div>
+        <h1>Login (Try Wrong Password!)</h1>
+        <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter 'user123'">
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter 'pass123'">
+        </div>
+        <button id="loginBtn">Login</button>
+        <div class="error-message" id="errorMsg"></div>
+        <div class="forgot-password">
+            <a href="#">Forgot password?</a>
+        </div>
+    </div>
+
+    <script>
+        const body = document.getElementById('body');
+        const loginContainer = document.getElementById('loginContainer');
+        const loginBtn = document.getElementById('loginBtn');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const errorMsg = document.getElementById('errorMsg');
+
+        const correctUsername = "user123";
+        const correctPassword = "pass123";
+        let isRunning = false;
+        let escapeInterval;
+
+        // Check input in real-time
+        function checkInput() {
+            const userInput = username.value;
+            const passInput = password.value;
+
+            if (userInput !== correctUsername || passInput !== correctPassword) {
+                if (!isRunning) {
+                    startRunawayMode();
+                }
+            } else {
+                stopRunawayMode();
+            }
+        }
+
+        // Make the entire screen move chaotically
+        function startRunawayMode() {
+            isRunning = true;
+            body.classList.add('runaway-mode');
+            body.style.background = `linear-gradient(135deg, #ffcdcd 0%, #ff9a9a 100%)`;
+            errorMsg.textContent = "Wrong credentials! Try to catch the button!";
+            errorMsg.style.color = "#e74c3c";
+
+            // Move the entire screen randomly
+            escapeInterval = setInterval(() => {
+                const maxX = window.innerWidth - loginContainer.offsetWidth;
+                const maxY = window.innerHeight - loginContainer.offsetHeight;
+                
+                const newX = Math.random() * maxX;
+                const newY = Math.random() * maxY;
+                
+                loginContainer.style.position = "absolute";
+                loginContainer.style.left = `${newX}px`;
+                loginContainer.style.top = `${newY}px`;
+            }, 500);
+        }
+
+        // Reset to normal
+        function stopRunawayMode() {
+            isRunning = false;
+            body.classList.remove('runaway-mode');
+            body.style.background = `linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)`;
+            errorMsg.textContent = "";
+            clearInterval(escapeInterval);
+            loginContainer.style.position = "relative";
+            loginContainer.style.left = "";
+            loginContainer.style.top = "";
+        }
+
+        // Check input on every keystroke
+        username.addEventListener('input', checkInput);
+        password.addEventListener('input', checkInput);
+
+        // Login button click (if caught!)
+        loginBtn.addEventListener('click', function(e) {
+            if (username.value === correctUsername && password.value === correctPassword) {
+                errorMsg.textContent = "Login successful! Redirecting...";
+                errorMsg.style.color = "#2ecc71";
+                setTimeout(() => {
+                    alert("Welcome back! (This is a demo)");
+                    location.reload();
+                }, 1000);
+            } else {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
